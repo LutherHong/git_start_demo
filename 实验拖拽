@@ -1,0 +1,1823 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" isELIgnored="false"%>
+<%@ taglib uri="/tags/loushang-web" prefix="l"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>实验</title>
+	<link rel="stylesheet" type="text/css" href="<l:asset path='css/bootstrap.css'/>" />
+	<link rel="stylesheet" type="text/css" href="<l:asset path='css/font-awesome.css'/>" />
+	<link rel="stylesheet" type="text/css" href="<l:asset path='css/jquery-ui.css'/>" />
+	<link rel="stylesheet" type="text/css" href="<l:asset path='css/form.css'/>" />
+	<link rel="stylesheet" type="text/css" href="<l:asset path='dsw/lib/jquery.contextMenu.min.css'/>" />
+	<link rel="stylesheet" type="text/css" href="<l:asset path='dsw/lib/style.css'/>" >
+	<link rel="stylesheet" type="text/css" href="<l:asset path='dsw/css/workflow/design.css'/>" />
+<style type="text/css">
+.context-container{
+    display:table-cell;
+    height: 200px;
+    width: 3000px; /*自适应的设置  */
+    border: 1px solid #ddd;
+    text-align:center;
+    vertical-align:middle;
+    color:#ddd;
+ } 
+
+ .cable-wrapper.path-active{
+  	stroke : #3e99ff00; 
+  	stroke-width : 20px;
+ }
+ 
+  .cable.path-active{
+  	stroke : #3e99ff; 
+  	stroke-width : 2px;
+ }
+
+form.form-inline {
+    padding:5px;
+    width:250px;
+}
+
+#folder .fa {
+	position:absolute;
+	top:13px;
+	left:25px;
+}
+
+#folder .fa.fa-caret-down{
+	left:8px;
+}
+ #folder .fa.fa-caret-right {
+	left:10px;
+}
+.sidebar-nav a {
+ 	position:relative;
+}
+
+.sidebar-nav li li>a {
+    text-indent : 20px;
+}
+
+.sidebar-nav li li li>a {
+    text-indent : 40px;
+}
+
+.sidebar-nav li li li li>a {
+    text-indent : 60px;
+}
+
+#folder>li>a {
+  padding-left : 6px;
+}
+
+.btn-link:focus, .btn-link:hover {
+    text-decoration: none;
+}
+
+/* 悬浮框的格式 */
+.idsw-bnpm-actions {
+  position: absolute;
+  font-size: 16px;
+  top: 52px;
+  z-index:1000;
+  right: 18px;
+  width: 32px;
+  background-color: hsla(0,0%,96%,.9);
+  border: 1px solid hsla(0,0%,93%,.9);
+  -webkit-box-shadow: 0 0 20px rgba(0,0,0,.01);
+  box-shadow: 0 0 20px rgba(0,0,0,.01);
+  border-radius: 3px;
+}
+
+.idsw-bnpm-actions ul {
+  padding: 2px 0;
+}
+.idsw-bnpm-actions .item{
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  vertical-align:middle;
+  display:inline-block;
+}
+.idsw-bnpm-actions li{
+  line-height: 1.5;
+  cursor: pointer;
+  list-style:none;
+}
+
+/* 全屏实现 */
+#left-wrapper.toggled, #right-wrapper.toggled {
+	display: inline-block;
+}
+
+#middle-wrapper.toggled {
+	left: 250px;
+    right: 250px;
+}
+
+div.form-background {
+	width:240px;
+	height:5px;
+}
+
+.left-wrapper {
+    padding-bottom : 30px;
+}
+
+/* 画布放大缩小功能区的tip---popover样式 */
+.popover {
+	display : block;
+	left : 30px;
+	width : 45px;
+	border:1px solid #333;
+	background: #333;
+	color:#fff;
+	font-size : 12px;
+	text-align : center;
+}
+.popover-title {
+	padding: 4px 5px;
+	font-size : 12px;
+	background : #333;
+	border : none;
+}
+.popover-content {
+	display:none !important;
+}
+.popover.left>.arrow:after {
+	border-left-color:#333;
+} 
+/* 下面这句是控制全屏和退出全屏用的 */
+#btn-quit-full-screen.toggled, #btn-full-screen.toggled {
+	display:none;
+}
+#btn-zoom.toggled, #btn-box-choose.toggled {
+	display:none;
+}
+
+
+/* 下面是画布中组件的tooltip样式 */
+.idsw-tooltip { 
+	position:absolute; 
+	background:#333;
+	padding:15px 20px;
+	color:#fff;
+	font-size:12px;
+	border-radius:5px;
+	z-index:1001;
+}
+
+div#left-head-sect {
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-bottom: solid 1px #e7e7e7;
+}
+
+#left-head-sect span:hover {
+	color: rgba(61, 153, 255, 1);
+	cursor: pointer;
+}
+
+/* 实验节点运行时状态 */
+.bpmn .node.running rect {
+    stroke: #0275d8;
+    fill: rgba(239, 248, 254, 1);
+}
+
+.input_error{
+	fill:red;
+}
+
+/* 框选 */
+.container {
+            padding: 20px;
+            margin: 100px 100px 20px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        .select-box-container {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .node.temp-selected {
+            background-color: #ddd;
+        }
+        .select-box-dashed {
+            position: absolute;
+            display: none;
+            width: 0px;
+            height: 0px;
+            padding: 0px;
+            margin: 0px;
+            border: 1px dashed #0099ff;
+            background-color: #c3d5ed;
+            opacity: 0.5;
+            filter: alpha(opacity=50);
+            font-size: 0px;
+            z-index: 99999;
+            pointer-events: none;
+        }
+
+</style>
+	
+</head>
+<body>
+	
+    <div id="container-wrapper" class="container-fuild absolute" >
+      <div id="left-wrapper" class="left-wrapper toggled" style="overflow:hidden;">
+      	<div id="left-head-sect"><span>返回上层</span></div>
+      	<form class="form-inline" onsubmit="return false;" style="position:relative;">
+           <div class="input-group">
+             <input id="fuzzyName" class="form-control ue-form" type="text" placeholder='<spring:message code="placeholder.search"/>'>
+             <div id="searchBtn" class="input-group-addon ue-form-btn">
+               <span class="fa fa-search"></span>
+             </div>
+           </div>
+        </form>
+      	<!-- <div class="form-background"></div> -->
+        <div style="overflow:auto;height:91%;" >
+	        <ul id="folder" class="sidebar-nav" style="overflow:auto;">
+	        </ul>
+        </div>
+        <div class="form-background"></div>
+      </div>    
+      
+      <div id="middle-wrapper" class="middle-wrapper toggled" >
+        <h4 id="titleName">未命名.viz</h4>
+        <div id="idsw-bpmn" class="bpmn">
+          <svg id="svg-exp" width="100%" height="100%" class="edit">
+            <defs>
+              <marker id="marker-circle" markerWidth="6" markerHeight="6" refX="4" refY="4">
+                <circle cx="4" cy="4" r="2" style="stroke: none; fill:#EBEBEB; pointer-events:none;"/>
+              </marker>
+              <marker id="endpoint" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                <path d="M 0 0 L 10 5 L 0 10 z" stroke-width="0" stroke="#333"></path>
+              </marker>
+            </defs>
+            <clipPath id="clip">
+			  <rect x="30" y="0" width="120" height="36"/>
+			</clipPath>
+          </svg>
+          <div id="bnpm-action" class="idsw-bnpm-actions">
+	          <ul>
+	          	<li><span id="btn-plus" class="fa fa-search-plus item"  data-toggle="popover" data-placement="left" data-trigger="hover" title="放大"></span></li>
+	          	<li><span id="btn-minus" class="fa fa-search-minus item" data-toggle="popover" data-placement="left" data-trigger="hover"title="缩小"></span></li>
+	          	<li><span id="btn-origin-size" class="fa fa-compress item" data-toggle="popover" data-placement="left" data-trigger="hover"title="原始尺寸" ></span></li>
+	          	<li><span id="btn-adapt-size" class="fa fa-expand item" data-toggle="popover" data-placement="left" data-trigger="hover" title="适应画布"></span></li>
+	          	<li><span id="btn-box-choose" class="fa fa-hand-paper-o item" data-toggle="popover" data-placement="left" data-trigger="hover" title="拖拽/框选"></span></li>
+	            <li><span id="btn-zoom" class="fa fa-hand-paper-o toggled item" data-toggle="popover" data-placement="left" data-trigger="hover" title="拖拽/框选" style="color: #3e99ff;"></span></li>	          
+	          	<li><span id="btn-full-screen" class="fa fa-arrows-alt item" data-toggle="popover" data-placement="left" data-trigger="hover" title="全屏"></span></li>
+	            <li><span id="btn-quit-full-screen" class="fa fa-arrow-left toggled item" data-toggle="popover" data-placement="left" data-trigger="hover" title="退出全屏"></span></li>	          
+	          </ul>
+          </div>
+        </div>
+        <div class="button-group">
+          <a id="runBtn" class="btn btn-link" href="#">
+            <i class="fa fa-play-circle-o" aria-hidden="true"></i>&nbsp;
+            <spring:message code="label.start" text="运行"></spring:message>
+          </a>
+          <a id="stopBtn" class="btn btn-link" style="display:none">
+            <i class="fa fa-stop" aria-hidden="true"></i>&nbsp;
+            <spring:message code="label.stop" text="停止"></spring:message>
+          </a>
+          <a id="saveBtn" class="btn btn-link" href="#">
+            <i class="fa fa-save" aria-hidden="true"></i>&nbsp;
+            <spring:message code="label.save" text="保存"></spring:message>
+          </a>
+        </div>
+      </div>
+      <div id="right-wrapper" class="right-wrapper toggled">
+        <h4>实验属性</h4>
+        <div id="prop-panel" style="padding: 5px;height:97%;">
+          <form id="viz-conf" class="form" onsubmit="return false;">
+          </form>
+        </div>
+      </div>
+    </div>
+    
+</body>
+
+<script type="text/javascript" src="<l:asset path='jquery.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='bootstrap.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='jquery-ui.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='form.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/template-web.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/d3.v3.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/d3.min.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/jquery.livequery.min.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/jquery.base64.min.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/jquery.contextMenu.min.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/lib/jquery.ui.position.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/workflow/graph.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/workflow/workflow.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/workflow/context-menu.js'/>"></script>
+<script type="text/javascript" src="<l:asset path='dsw/workflow/jquery.cxselect.js'/>"></script>
+
+<div id="script-zone">
+
+</div>
+<script type="text/javascript">
+
+var context = '<%=request.getContextPath()%>';
+var assetPath='/idsw/skins/js/dsw/component/';
+
+var global = {
+	id: '${param.id}',
+	mouseMove: false
+}
+var workflow = new WorkFlow();
+
+
+/* 激活popover */
+$(function() {  
+	options={
+        delay: { show: 0, hide: 0 },
+        trigger:'hover'
+        };
+	$("[data-toggle='popover']").popover(options);	
+});
+
+$(function() {
+	initPageDom();
+	initPageEvent();
+	
+	initContextMenu();	
+})
+
+function initPageDom() {
+	template.defaults.escape=false;
+	$(parent.document).find("#wrapper").removeClass("toggled");
+	
+	initWorkflow();
+	initOperatorTree();
+
+	// 定义画布拖拽的zoom变量，用于函数间传递transform(translate(translateX,translateY)scale(scale))
+ 	var zoom = d3.behavior.zoom().scaleExtent([0.4, 5]);
+	global.zoom=zoom;
+	
+	// 定义画布,此处注意 
+	// 1. 直接在<svg>上操作会出现抖动，添加<g>元素(此处定义为“g-drag”) 2. 禁用zoom中自带的双击放大效果
+	var svg = d3.select("svg")
+    .call(zoom.on("zoom", function () {
+    	// 定义translate和scale的变量
+		var translateX = d3.event.translate[0];
+		var translateY = d3.event.translate[1];
+		var scale = d3.event.scale;
+        svg.attr("transform", "translate(" + [translateX,translateY]+ ")" + " scale(" + scale + ")");
+    })).on("dblclick.zoom", null).append("g").attr("id","g-drag");
+	
+	global.svg=svg;
+	
+	// 绑定拖拽
+	$("#left-wrapper .node").livequery(function() {
+		$(this).draggable({
+		    helper: "clone",
+		    connectToSortable: "#idsw-bpmn",
+		    appendTo: "#container-wrapper", 
+		    revert: "invalid",
+		    start: function (e, ui) {
+		        ui.helper.addClass("ui-draggable-helper");		        
+		    }
+		});
+		
+	});
+	// 设定droppable区域(未放置在该区域，则revert)
+ 	$( "#middle-wrapper" ).droppable({
+ 		drop: function (e, ui) {
+	    	// 查看画布中是否有相同的组件
+	    	var node = {
+		    		id: new Date().getTime() + "",
+		    		operation: ui.helper.attr('data-id'),
+		    		params: {},
+/* 			    		x: Math.floor(ui.position.left - 250),
+		    		y: Math.floor(ui.position.top - 40), */
+			    	x: Math.floor((ui.position.left - 250- zoom.translate()[0])/zoom.scale()),
+		    		y: Math.floor((ui.position.top - 40- zoom.translate()[1])/zoom.scale()),
+		    		text: ui.helper.text().trim(),
+		    		inputs: +ui.helper.attr('data-input-count'),
+		    		outputs: +ui.helper.attr('data-output-count'),
+		    		icon: ui.helper.find('i').attr('class').split(' ')[1]
+		    	};
+
+	    	if('mydataset' == node.operation) {
+	    		node.origin='dataset';
+	    		node.dataSetId=ui.helper.attr('data-dataset');
+	    		//node.operation='c6e225e499f24aa3926203da93b628c5'; 	
+	    		node.operation='82c06c29bcac48e8897785f38409eeaf'; 	
+	    	}else if('mymodels' == node.operation) {
+	    	    node.origin='model';
+	    	    node.modelId=ui.helper.attr('data-model');
+	    		node.operation='a58f308c47194bd2bf6575a59e833d34';
+	    	}
+	    	
+	    	// 发起ajax请求，将新拖入画布的组件添加到数据库
+	    	$.ajax({
+				  type: "POST",
+				  url: context + "/service/experiments/"+global.id+"?method=addNodeInstance",
+				  contentType: "application/json",
+				  async: false,
+				  data: JSON.stringify(node)
+			    }).done(function(msg) {
+					if(msg.success){
+						$.extend(node,msg.data);
+						// 实验支持将数据集、模型直接拖入画布，数据集在组件中等同于ReadData，模型在组件中等同于LoadModel
+						// 与直接拖入的ReadData、LoadModel组件不同的是，它们本身已经带有参数，因此，在拖入时，需要同时更新相关组件参数
+						if(node.origin=='dataset'){
+				    		var dataSetPath=ui.helper.attr('data-dataset-path');
+				    		var params={};
+				    		params['type']='csv';
+				    		params['path']=dataSetPath;
+				    		node.params=params;
+				    		
+				    		$.ajax({
+				    			type:'POST',
+				    			url: context+'/service/experiments/'+global.id+'?method=updateDataSetNode',
+				    			contentType: 'application/json',
+				    			async: false,
+				    			data: JSON.stringify({'dataSetId':node.dataSetId,'nodeId':node.id})
+				    		}).done(function(msg){
+				    			if(!msg.success){
+				    				failed('画布更新数据集节点出错！');
+				    			}
+				    		});
+						} else if(node.origin=='model'){
+                            var modelPath=ui.helper.attr('data-model-url');
+                            var params={};
+                            params['path']=modelPath;
+                            node.params=params;
+
+                            $.ajax({
+                                type:'POST',
+                                url: context+'/service/experiments/'+global.id+'?method=updateModelNode',
+                                contentType: 'application/json',
+                                async: false,
+                                data: JSON.stringify({'modelId':node.modelId,'nodeId':node.id})
+                            }).done(function(msg){
+                                if(!msg.success){
+                                	failed('更新模型节点出错');
+                                }
+                            });
+                        }
+					}else{
+						failed("添加实验组件失败");
+					}
+			    });
+	    	
+/* 		    	if(node.x < 0) {
+	    		node.x = 0;
+	    	}
+	    	if(node.y < 0) {
+	    		node.y = 0;
+	    	} */
+	    	workflow.addNode(svg, node);
+	    	addNodeTooltip();
+	    	addPortTooltip ();
+	    }
+ 	}); 
+	
+}
+
+function initPageEvent() {
+	
+	$("#left-head-sect>span").on('click',function(e){
+		history.back(-1);
+	});
+	
+	window.onbeforeunload = function (e) {
+		var old = JSON.stringify(global.old);
+		var current = JSON.stringify(workflow.graph.info());
+		if(old != current) {
+			return 'You may lose the changes!!!\n are you sure???';
+		}
+	};
+	
+	$(window).unload(function() {
+		if (global.container && global.container.id) {
+			$.ajax({
+				type: 'delete',
+				url: context + "/service/viz/stop/" + global.container.id
+			});
+		}
+	});
+	
+	// 过滤组件
+	$(document).on('click','#searchBtn',function(e){
+		var fuzzyName=$('#fuzzyName').val();
+		
+		if(!fuzzyName){	
+			$('#folder').empty();
+			loadDataSet();
+			loadModel();
+			 
+			// 加载节点
+			$.getJSON(context + "/service/viz/nodes?parentId=root&isHidden=0")
+			 .done(function(json) {
+				 var arr = [];
+				 for(var i = 0, len = json.length; i < len; i++) {
+				   arr.push('<li data-id="' + json[i].id + '">');
+				   arr.push('  <a>');
+				   arr.push('    <i class="fa fa-caret-right"></i>');
+				   arr.push('    <i class="fa fa-folder-o"></i>');
+				   arr.push('    <span>' + json[i].name + '</span>');
+				   arr.push('  </a>');
+				   arr.push('</li>');
+				 }
+				 $("#folder").append(arr.join(''));
+			 });
+
+		}else{
+			  if(!/^(\w|[\u4e00-\u9fa5])+$/.test(fuzzyName)){
+				  warning('查询中含有字母、数字、汉字、下划线之外的字符!');
+				  return false;
+			  }
+			$('#folder').empty();
+			loadDataSet(fuzzyName);
+			loadModel(fuzzyName);
+			// 加载节点
+			$.getJSON(context + "/service/viz/nodes?isHidden=0&isLeaf=1&hasInfo&fuzzyName="+fuzzyName)
+			 .done(function(json) {
+				 var arr = [];
+				 for(var i = 0, len = json.length; i < len; i++) {
+					 arr.push('<li class="node" data-id="' + json[i].id + '"');
+		             arr.push(' data-input-count="' + json[i].operator.inputNum + '"');
+		             arr.push(' data-output-count="' + json[i].operator.outputNum + '">');
+					 arr.push('  <a>');
+					 arr.push('    <i class="fa '+ json[i].operator.icon +'"></i>');
+					 arr.push('    <span>' + json[i].name + '</span>');
+					 arr.push('  </a>');
+					 arr.push('</li>');
+				 }
+				 $("#folder").append(arr.join(''));
+			 });
+		}
+		
+	})
+	
+	//退格删除搜索组件的关键词后，重新加载列表
+	$('#fuzzyName').keydown(function(event){
+		if(event.keyCode==8 && $('#fuzzyName').val().length == 1) {//keycode为8表示退格键
+			$('#folder').empty();
+		    loadDataSet();
+		    loadModel();
+		 
+			// 加载节点
+			$.getJSON(context + "/service/viz/nodes?parentId=root&isHidden=0")
+			 .done(function(json) {
+				 var arr = [];
+				 for(var i = 0, len = json.length; i < len; i++) {
+				   arr.push('<li data-id="' + json[i].id + '">');
+				   arr.push('  <a>');
+				   arr.push('    <i class="fa fa-caret-right"></i>');
+				   arr.push('    <i class="fa fa-folder-o"></i>');
+				   arr.push('    <span>' + json[i].name + '</span>');
+				   arr.push('  </a>');
+				   arr.push('</li>');
+				 }
+				 $("#folder").append(arr.join(''));
+			 });
+		}
+	}); 
+
+	$("#runBtn").on("click", function() {
+	  if(workflow.graph.isEmpty()) {
+		$.dialog({
+		  content: "流程为空"
+		});
+	    return;
+	  }
+	
+	 //没有错误的组件
+	 var stroke=$("rect")[2].attributes["stroke"].value;
+	  var $wrongrect = $(".node").find("rect").filter(function(index){
+		  return this.style.stroke == "red";
+		});
+	  if($wrongrect.length){
+		    $.dialog({
+			   content:"属性有误，请返回填写"
+		});
+		return;
+	  }
+      // 清除选中状态
+      d3.selectAll("g.node").classed("active", false);
+      // 清除组件节点上一次运行结果状态
+      d3.selectAll("g.node>g>text.state").attr("fill", "#333").text("\uf017");
+      $.dialog({
+  		type: "confirm",
+  		content: "确认提交流程?",
+  		ok: function() {
+ 			// 验证流程是否正确
+			var isValid=workflow.graph.isValidate();
+			if(!isValid){
+				setTimeout(failed("流程图存在问题!"),1000);
+				return;
+			}
+
+			// 将“启动”按钮改为“停止”按钮，同时画布不能再进行修改
+  			d3.select("svg").classed('edit', false);
+  			$("#stopBtn").show();
+			$("#runBtn").hide();
+			
+			
+
+			// 启动实验
+			var param={
+				graph: JSON.stringify(workflow.graph.info())
+			};			
+	    	startExperiment(param);
+  		},
+  		cancel: function() {}
+  	  });
+    });
+	
+	// 双击组件节点
+	$(document).on("dblclick", "g.node", function(e) {
+	  e.stopPropagation();
+	  var id = this.id;
+	  var node = workflow.graph.getNodeById(id);
+	  
+	  $.ajax({
+          type:'POST',
+          url: context+'/service/experiments/'+global.id+'?method=getNodeInstance',
+          contentType: 'application/json',
+          async: false,
+          data: JSON.stringify({'nodeId':node.id})
+      }).done(function(msg){
+    	  if(JSON.stringify(msg)!==JSON.stringify(node)){
+    		  node=msg;
+    		  workflow.graph.updateNode(node);
+    	  }
+      });
+	  	  
+      $("#prop-panel").empty();
+      $('#script-zone').empty();
+      try {
+    	  var script = document.createElement('script');
+		  script.type = 'text/javascript';
+		  script.src = assetPath+node["pagePath"]+".js";
+		  $('#script-zone').append(script);
+		  var vizNode = new VizNode(workflow);
+		  vizNode.id=id;
+		  vizNode.node=node;
+		  vizNode.graph=workflow.graph;
+		  if(typeof(node.params)=="string"){
+			  vizNode.params=JSON.parse(node.params);
+			  node.params=JSON.parse(node.params);
+		  }else if(typeof(node.params)=="object"){
+			  if(node.params==null){
+				  vizNode.params={};
+			  }else{
+				  vizNode.params=node.params; 
+			  }
+			  
+		  }else{
+			  vizNode.params={};
+		  }
+		  vizNode.node=node;
+		  var html =vizNode.createDom();
+		  $("#prop-panel").append(html);
+		  $("#prop-panel").prev().text(node["name"]);
+		  vizNode.initDom();
+		  vizNode.destroyEvent();
+		  vizNode.initEvent();
+      } catch (e) {
+    	  var html = "";
+    	  $("#prop-panel").append(html);
+      }finally{
+    	  
+      }
+	  
+	});
+	
+	// 停止按钮
+	$("#stopBtn").on("click", function() {
+		$.dialog({
+		  title: "提示",
+		  type: "confirm",
+		  content: "确定停止运行吗?",
+		  ok: function() {
+			  workflow.stop();
+			  clearInterval(global.interval);
+		  },
+		  cancel: function() {}
+	   });
+	});
+	  
+	// 删除功能
+	$(document).on("keyup", function(e) {
+	  if(e.keyCode == 46) {
+		  var selected = d3.selectAll(".bpmn .active");
+	      if(!selected.empty()) {
+	        var r = confirm("确定删除选中内容?");
+	        if(r == true) {
+	        	var arr=[];
+	        	selected.each(function(){
+	        		var id = d3.select(this).attr("id");
+	        		arr.push(id);
+	        	})
+	        	
+	        	var param={};
+	        	param['nodeInstanceIds']=arr.join(",");
+	        	
+		    	$.ajax({
+					type: "POST",
+					url: context + "/service/experiments/"+global.id+"?method=deleteNodeInstances",
+					contentType: "application/json",
+					data: JSON.stringify(param),
+					async: false
+				}).done(function(msg) {
+					if(msg.success){
+						workflow.removeNode(selected);
+						$('#'+global.nodetooltipid+'').remove();
+					}else{
+						failed("删除组件失败");
+					}
+					
+				});
+	        }
+	      }
+	  }
+	});
+	
+	// 保存功能
+	$("#saveBtn").on("click", function() {
+		$.dialog({
+			type: "confirm",
+			content: "确定要保存吗?",
+			ok:function() {
+				var param = {
+					graph: JSON.stringify(workflow.graph.info())
+				};
+				$.ajax({
+					type: "PUT",
+					url: context + "/service/experiments/"+global.experiment.id,
+					contentType: "application/json",
+					data: JSON.stringify(param)
+				}).done(function(msg) {
+					if($.isPlainObject(msg)&&msg.status==true) {
+						global.old = workflow.graph.info();
+						success("保存成功");
+					} else {
+						failed("保存失败");
+					}
+				})
+			},
+			cancel: function() {}
+		});
+	});
+	
+	// 菜单折叠功能
+	$(document).on("click", "#folder>li,#folder ul>li", function(e) {
+		e.stopPropagation();
+		var $li = $(this);
+		if(!$li.hasClass("node")) {
+			if($li.find('ul').length == 0) {
+				/*
+				if($li.attr('data-id') == 'mydataset') {
+					// 加载数据集
+					$.getJSON(context + "/service/dataset")
+					 .done(function(json) {
+						 var arr = ['<ul>'];
+						 for(var i = 0, len = json.length; i < len; i++) {
+							 arr.push('<li class="node" data-id="mydataset"');
+							 arr.push(' data-dataset="' + json[i].id + '"');
+							 arr.push(' data-dataset-path="' + json[i].path + '"');
+							 arr.push(' data-input-count="0" data-output-count="1">');
+							 arr.push('  <a>');
+							 arr.push('    <i class="fa fa-caret-right"></i>');
+							 arr.push('    <i class="fa icon-idsw-inout"></i>');
+							 arr.push('    <span>' + json[i].name + '</span>');
+							 arr.push('  </a>');
+							 arr.push('</li>');
+						 }
+						 if (arr.length == 1) {
+							 arr.push('<li class="text-center">数据集为空</li>');
+						 }
+						 arr.push('</ul>');
+						 $li.append(arr.join(''));
+						 $li.addClass('open');
+						 $li.find(">a>i").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+						 $li.find(">ul").show();
+				    });					
+					
+				} else if($li.attr('data-id') == 'mymodels') {
+                    $.getJSON(context + "/service/models")
+                        .done(function (json) {
+
+                            var arr = ['<ul>'];
+                            for (var i = 0, len = json.length; i < len; i++) {
+                                arr.push('<li class="node" data-id="mymodels"');
+                                arr.push(' data-model="' + json[i].id + '"');
+                                arr.push(' data-model-url="' + json[i].path + '"');
+                                arr.push(' data-input-count="0" data-output-count="1">');
+                                arr.push('  <a>');
+                                arr.push('    <i class="fa fa-caret-right"></i>');
+                                arr.push('    <i class="fa icon-idsw-inout"></i>');
+                                arr.push('    <span>' + json[i].name + '</span>');
+                                arr.push('  </a>');
+                                arr.push('</li>');
+                            }
+                            if (arr.length == 1) {
+                                arr.push('<li class="text-center">没有模型文件</li>');
+                            }
+                            arr.push('</ul>');
+                            $li.append(arr.join(''));
+                            $li.addClass('open');
+                            $li.find(">a>i").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+                            $li.find(">ul").show();
+                    });
+				} else {
+				*/
+					$.getJSON(context + "/service/viz/nodes?parentId=" + $li.attr('data-id') + "&isHidden=0&hasInfo")
+					 .done(function(json) {
+						 var arr = ['<ul>'];
+						 for(var i = 0, len = json.length; i < len; i++) {
+							 if (json[i].isLeaf == '1') {
+								 arr.push('<li class="node" data-id="' + json[i].id + '"');
+					             arr.push(' data-input-count="' + json[i].operator.inputNum + '"');
+					             arr.push(' data-output-count="' + json[i].operator.outputNum + '">');
+								 arr.push('  <a>');
+								 arr.push('    <i class="fa '+ json[i].operator.icon +'"></i>');
+								 arr.push('    <span>' + json[i].name + '</span>');
+								 arr.push('  </a>');
+								 arr.push('</li>');
+								 
+							 } else {
+								 arr.push('<li data-id="' + json[i].id + '">');
+								 arr.push('  <a>');
+								 arr.push('    <i class="fa fa-caret-right"></i>');
+								 arr.push('    <i class="fa fa-folder-o"></i>');
+								 arr.push('    <span>' + json[i].name + '</span>');
+								 arr.push('  </a>');
+								 arr.push('</li>');
+							 }
+						 }
+						 arr.push('</ul>');
+						 $li.append(arr.join(''));
+						 
+						 $li.addClass('open');
+						 $li.find(">a>i:first").removeClass('fa-caret-right').addClass('fa-caret-down');
+						 $li.find(">a>i:last").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+					     $li.find(">ul").show();
+					     
+				   });
+				/* } */
+			} else {
+				$li.toggleClass('open');
+				if($li.hasClass('open')) {
+					$li.find(">a>i:last").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+					$li.find(">a>i:first").removeClass('fa-caret-right').addClass('fa-caret-down');
+					$li.find(">ul").show();
+				} else {
+					$li.find(">a>i:last").removeClass('fa-folder-open-o').addClass('fa-folder-o');
+					$li.find(">a>i:first").removeClass('fa-caret-down').addClass('fa-caret-right');
+					$li.find(">ul").hide();
+				}
+			}
+		}
+	});
+	
+	// node节点单击时不再展开
+	$(document).on("click","#folder li.node", function(e) {
+	  e.stopPropagation();
+	});
+	
+	// 节点remove事件
+	$(document).on("click", "g.remove", function(e) {
+	  e.stopPropagation();
+      var param={};
+	  var selected = d3.selectAll(".bpmn .active");
+      param['nodeInstanceIds']=this.parentNode.id;
+	    	$.ajax({
+				type: "POST",
+				url: context + "/service/experiments/"+global.id+"?method=deleteNodeInstances",
+				contentType: "application/json",
+				data: JSON.stringify(param),
+				async: false
+			}).done(function(msg) {
+				if(msg.success){
+					workflow.removeNode(selected);
+					/* 下句清除此组件的提示div */
+					$('#'+global.nodetooltipid+'').remove();
+				}else{
+					failed("删除组件失败");
+				}				
+			});
+      /* } */
+	});
+	
+	// 连线
+	$(document).on("click","div#idsw-bpmn>svg path.cable-wrapper",function(e){
+		$('#'+global.porttooltipid+'').remove();
+		  
+		e.stopPropagation();
+		
+		d3.selectAll("g.node").classed("active", false);
+		d3.select(this).classed("path-active", true);
+		d3.select($(this).prev()[0]).classed("path-active",true);
+	});
+	
+	// node单击选中
+	$(document).on("click","div#idsw-bpmn>svg.edit g.node",function(e){
+		e.stopPropagation();
+		d3.selectAll("path.cable").classed("path-active", false);
+		d3.selectAll("path.cable-wrapper").classed("path-active", false);
+		d3.select(this).classed("active", true);
+	});
+	
+	// 画布
+	$(document).on("click","svg",function(e){
+		d3.selectAll("path.cable").classed("path-active", false);
+		d3.selectAll("path.cable-wrapper").classed("path-active", false);
+		if(!global.mouseMove){
+			d3.selectAll("g.node").classed("active", false);
+		}
+		renderExperimentPanel();
+	});
+
+
+	initPlaneEvent();
+}
+
+function loadColumns(nodeId, action, elem) {
+	var node = workflow.graph.getNodeById(nodeId);
+	var arr = [];
+	arr.push(context);
+	arr.push('/jsp/dsw/experiment/columns.jsp?dataset=');
+	if(node.params['dataset']) {
+	  arr.push(node.params['dataset']);
+	} else {
+	  var dsNode = workflow.getDataSetNode();
+	  if(!dsNode) {
+		  alert("画布中没有数据集，请先拖入数据集");
+		  return false;
+	  }
+	  arr.push(dsNode.params['dataset']);
+	}
+	arr.push('&nodeId=' + nodeId);
+	if(action) {
+		arr.push('&action=' + action);
+	}
+	var key = $(elem).attr('name');
+	$.dialog({
+		title: "选择字段",
+		type: "iframe",
+		width: 560,
+		height: 320,
+		url: arr.join(''),
+		onclose: function() {
+			if(this.returnValue) {
+				if(action == 'label') {
+					node.params['label'] = this.returnValue;
+					$(elem).html(this.returnValue);
+				} else {
+					node.params[key] = this.returnValue;
+					$(elem).html("已选择" + node.params[key].length + "个字段");
+				}
+			}
+		}
+	})
+}
+
+function saveWorkFlow(){
+	var param = {
+			expInfo: JSON.stringify(workflow.graph.info())
+		};
+		$.ajax({
+			type: "PUT",
+			url: context + "/service/experiments/"+global.id,
+			contentType: "application/json",
+			data: JSON.stringify(param)
+		}).done(function(msg) {
+			var d = new Date();		
+			if($.isPlainObject(msg)&&msg.status==true) {
+				global.old = workflow.graph.info();
+				alert(d.toString()+"保存成功");
+			} else {
+				alert(d.toString()+"保存失败");
+			}
+		})
+}
+
+
+function renderExperimentPanel(){
+	  var experiment=global.experiment;
+	  var arr=[];
+	  arr.push('<p title="'+experiment.name+'">项目:'+experiment.name.substring(0,10).concat('...'));
+	  arr.push("</p><p>")
+	  arr.push("创建时间："+experiment.createTime);
+	  arr.push("</p><p>");
+	  arr.push("描述："+experiment.description);
+	  arr.push("</p>");
+	  
+  	  var html = arr.join("");
+  	  $("#prop-panel").empty();
+	  $("#prop-panel").append(html);
+	  $("#prop-panel").prev().text("实验属性");
+}
+
+
+
+//////////////////////////// 左边 组件树  //////////////////////////////////////////////////////
+
+function initOperatorTree(){
+	loadDataSet();
+	loadModel();
+	
+	// 加载节点
+	$.getJSON(context + "/service/viz/nodes?parentId=root&isHidden=0&isLeaf=0")
+	 .done(function(json) {
+		 var arr = [];
+		 for(var i = 0, len = json.length; i < len; i++) {
+		   arr.push('<li data-id="' + json[i].id + '">');
+		   arr.push('  <a>');
+		   arr.push('    <i class="fa fa-caret-right"></i>');
+		   arr.push('    <i class="fa fa-folder-o"></i>');
+		   arr.push('    <span>' + json[i].name + '</span>');
+		   arr.push('  </a>');
+		   arr.push('</li>');
+		 }
+		 $("#folder").append(arr.join(''));
+	});
+}
+
+function loadDataSet(fuzzyName){
+    
+	if(!fuzzyName){
+	    $('#folder').append('<li data-id="mydataset"><a><i class="fa fa-caret-right"></i><i class="fa fa-folder-o"></i><span>我的数据集</span></a></li>');
+		$li = $("#folder li[data-id='mydataset']");
+		$.ajax({
+			url: context + "/service/dataset",
+			async: false
+		}).done(function(json) {
+			$li.find("ul").remove();
+			var arr = ['<ul>'];
+			for(var i = 0, len = json.length; i < len; i++) {
+				 arr.push('<li class="node" data-id="mydataset"');
+				 arr.push(' data-dataset="' + json[i].id + '"');
+				 arr.push(' data-dataset-path="'+json[i].path+'"');
+				 arr.push(' data-input-count="0" data-output-count="1">');
+				 arr.push('  <a>');
+				 arr.push('    <i class="fa icon-idsw-inout"></i>');
+				 arr.push('    <span>' + json[i].name + '</span>');
+				 arr.push('  </a>');
+				 arr.push('</li>');
+			}
+			if (arr.length == 1) {
+			    arr.push('<li class="text-center">没有数据集</li>');
+			}
+			arr.push('</ul>');
+			$li.append(arr.join(''));
+			//$li.addClass('open');
+			//$li.find(">a>i").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+			//$li.find(">ul").show();
+	    });	
+	}else{
+			$.ajax({
+				url: context + "/service/dataset?fuzzyName="+fuzzyName,
+			}).done(function(json) {
+				var arr = [];
+				for(var i = 0, len = json.length; i < len; i++) {
+					 arr.push('<li class="node" data-id="mydataset"');
+					 arr.push(' data-dataset="' + json[i].id + '"');
+					 arr.push(' data-dataset-path="'+json[i].path+'"');
+					 arr.push(' data-input-count="0" data-output-count="1">');
+					 arr.push('  <a>');
+					 arr.push('    <i class="fa icon-idsw-inout"></i>');
+					 arr.push('    <span>' + json[i].name + '</span>');
+					 arr.push('  </a>');
+					 arr.push('</li>');
+				}
+
+				$('#folder').append(arr.join(''));
+		    });	
+	}
+
+}
+
+function loadModel(fuzzyName) {
+    if(!fuzzyName) {
+        $('#folder').append('<li data-id="mymodels"><a><i class="fa fa-caret-right"></i><i class="fa fa-folder-o"></i><span>我的模型</span></a></li>');
+        $li = $("#folder li[data-id='mymodels']");
+        // 加载存在的模型文件
+        $.ajax({
+            url: context + "/service/models",
+            async:false
+            // data: {
+            // 	"kernel": workflow.graph.getConf('kernel')
+            // }
+        }).done(function (json) {
+            $li.find("ul").remove();
+            var arr = ['<ul>'];
+            for (var i = 0, len = json.length; i < len; i++) {
+                arr.push('<li class="node" data-id="mymodels"');
+                arr.push(' data-model="' + json[i].id + '"');
+                arr.push(' data-model-url="' + json[i].path + '"');
+                arr.push(' data-input-count="0" data-output-count="1">');
+                arr.push('  <a>');
+                arr.push('    <i class="fa fa-diamond"></i>');
+                arr.push('    <span>' + json[i].name + '</span>');
+                arr.push('  </a>');
+                arr.push('</li>');
+            }
+            if (arr.length == 1) {
+                arr.push('<li class="text-center">没有模型文件</li>');
+            }
+            arr.push('</ul>');
+            $li.append(arr.join(''));
+            //$li.addClass('open');
+            //$li.find(">a>i").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+            //$li.find(">ul").show();
+        });
+    } else{
+        // 加载存在的模型文件
+        $.ajax({
+            url: context + "/service/models?fuzzyName="+fuzzyName
+        }).done(function (json) {
+        	var arr = [];
+            for (var i = 0, len = json.length; i < len; i++) {
+                arr.push('<li class="node" data-id="mymodels"');
+                arr.push(' data-model="' + json[i].id + '"');
+                arr.push(' data-model-url="' + json[i].path + '"');
+                arr.push(' data-input-count="0" data-output-count="1">');
+                arr.push('  <a>');
+                arr.push('    <i class="fa fa-diamond"></i>');
+                arr.push('    <span>' + json[i].name + '</span>');
+                arr.push('  </a>');
+                arr.push('</li>');
+            }
+            $('#folder').append(arr.join(''));
+        });
+    }
+}
+
+function updateModel() {
+        $li = $("#folder li[data-id='mymodels']");
+        // 加载存在的模型文件
+        $.ajax({
+            url: context + "/service/models",
+            // data: {
+            // 	"kernel": workflow.graph.getConf('kernel')
+            // }
+        }).done(function (json) {
+            $li.find("ul").remove();
+            var arr = ['<ul>'];
+            for (var i = 0, len = json.length; i < len; i++) {
+                arr.push('<li class="node" data-id="mymodels"');
+                arr.push(' data-model="' + json[i].id + '"');
+                arr.push(' data-model-url="' + json[i].path + '"');
+                arr.push(' data-input-count="0" data-output-count="1">');
+                arr.push('  <a>');
+                arr.push('    <i class="fa fa-diamond"></i>');
+                arr.push('    <span>' + json[i].name + '</span>');
+                arr.push('  </a>');
+                arr.push('</li>');
+            }
+            if (arr.length == 1) {
+                arr.push('<li class="text-center">没有模型文件</li>');
+            }
+            arr.push('</ul>');
+            $li.append(arr.join(''));
+            $li.addClass('open');
+            $li.find(">a>i:first").removeClass('fa-caret-right').addClass('fa-caret-down');
+            $li.find(">a>i:last").removeClass('fa-folder-o').addClass('fa-folder-open-o');
+            $li.find(">ul").show();
+        });
+}
+
+
+/////////////////////  中间 实验  //////////////////////////////////////
+
+function initWorkflow(){
+	
+
+    $("#middle-wrapper").bind("contextmenu",function(e){
+    	if(e.target.tagName=="rect"){
+    		var nodeBool=$(e.target).parent().attr("class").indexOf("active")==-1;
+    		if(nodeBool){
+    			return false;
+    		}
+    	}
+    	else if(e.target.tagName=="path"){
+    		var pathBool=$(e.target).attr("class").indexOf("active")==-1;
+    		if(pathBool){
+    			return false;
+    		}
+    	}
+    	else{
+    		return false;
+    	}
+    	
+    });
+	
+	$.getJSON(context+"/service/experiments/"+global.id)
+	 .done(function(msg) {
+		 var experiment=msg;
+		 global.experiment=msg;
+		 if(msg.name.length>10){
+			 $("#titleName").text(msg.name.substring(0,10).concat('...'));
+			 $("#titleName").attr("title",msg.name);
+		 }else{
+			 $("#titleName").text(msg.name); 
+		 }
+		 
+		 // 实验属性
+		 renderExperimentPanel();
+		if(experiment.graph) {
+			var json = msg.graph;
+			global.old = json;
+			
+			if ($.isEmptyObject(json)) return false;
+			
+			// 还原效果
+			var svg = d3.select("g-drag");
+			var nodes = json.nodes;
+			var idArr = [];
+			for(var i = 0, len = nodes.length; i < len; i++) {
+				workflow.addNode(svg, nodes[i]);
+				idArr.push(nodes[i].operation);
+			}
+			var connections = json.connections;
+			for(var i = 0, len = connections.length; i < len; i++) {
+				var conn = connections[i];
+				workflow.addEdge(conn);
+			}
+		}
+		$("#btn-origin-size").click();
+		
+		addNodeTooltip();
+		addPortTooltip ();
+
+	 });
+}
+
+//////////////////  画布  ///////////////////
+
+function initPlaneEvent(){	
+	$("#btn-plus").on("click", function() {
+		var zoom=global.zoom;
+		var scaleRate = 1.2 ;
+		var scale = zoom.scale() * scaleRate;
+		
+		if (scale > 5){
+			warning("已经放到最大");
+		}else{
+			/////////////////   以下为中心放大   //////////////////////
+			/* // 当前画布已使用面积的中心点
+			var center = centerGDrag(scaleRate);
+			// 计算平移量
+			var halfsvgwidth = $("#svg-exp").innerWidth()/2;
+			var halfsvgheight = ($("#svg-exp").innerHeight()-80)/2;
+		 	var translateX = halfsvgwidth - center.x;
+		 	var translateY = halfsvgheight - center.y; */
+			/////////////////   以上为中心放大   //////////////////////
+		 	
+			
+			/////////////////   以下为当前放大   //////////////////////
+		 	var halfsvgwidth = $("#svg-exp").innerWidth() / 2;
+			var halfsvgheight = ($("#svg-exp").innerHeight()-80) / 2;
+			
+			// 放大后可见区域的中心点坐标
+			var centersvgX = halfsvgwidth / scale;
+			// 放大前可见区域的中心点对应的g-drag坐标
+			var centersvgX2Gdrag = (-zoom.translate()[0] + halfsvgwidth) * scale / zoom.scale();
+	 		var translateX = halfsvgwidth - centersvgX2Gdrag;
+	 		
+	 		var centersvgY = halfsvgheight / scale;
+	 		var centersvgY2Gdrag = (-zoom.translate()[1] + halfsvgheight) * scale / zoom.scale();
+	 		var translateY = halfsvgheight - centersvgY2Gdrag;
+	 		
+		 	// 3. 根据设置的translate和scale进行zoom变换
+		 	 var strmatrix = "translate("+translateX+","+translateY+")scale("+scale+")"; 
+		 	 $("#g-drag").attr("transform",strmatrix);
+		 
+		 	// 4.将上述变换同步到zoom变量中
+		 	 zoom.translate([translateX,translateY]);
+		 	 zoom.scale(scale);
+		}
+	});
+	
+	$("#btn-minus").on("click", function() { 
+		var zoom=global.zoom;
+		var scaleRate = 1/1.2 ;
+		var scale = zoom.scale() * scaleRate;
+		if (scale < 0.4){
+			warning("已经缩到最小");
+		}else{
+			/* // 当前画布已使用面积的中心点
+			var center = centerGDrag(scaleRate);
+			// 计算平移量
+			var halfsvgwidth = $("#svg-exp").innerWidth()/2;
+			var halfsvgheight = ($("#svg-exp").innerHeight()-80)/2;
+		 	var translateX = halfsvgwidth - center.x;
+		 	var translateY = halfsvgheight - center.y; */
+		 	
+			/////////////////   以下为当前放大   //////////////////////
+		 	var halfsvgwidth = $("#svg-exp").innerWidth() / 2;
+			var halfsvgheight = ($("#svg-exp").innerHeight()-80) / 2;
+			
+			// 放大后可见区域的中心点坐标
+			var centersvgX = halfsvgwidth / scale;
+			// 放大前可见区域的中心点对应的g-drag坐标
+			var centersvgX2Gdrag = (-zoom.translate()[0] + halfsvgwidth) * scale / zoom.scale();
+	 		var translateX = halfsvgwidth - centersvgX2Gdrag;
+	 		
+	 		var centersvgY = halfsvgheight / scale;
+	 		var centersvgY2Gdrag = (-zoom.translate()[1] + halfsvgheight) * scale / zoom.scale();
+	 		var translateY = halfsvgheight - centersvgY2Gdrag;
+		 	// 3. 根据设置的translate和scale进行zoom变换
+		 	 var strmatrix = "translate("+translateX+","+translateY+")scale("+scale+")"; 
+		 	 $("#g-drag").attr("transform",strmatrix);
+		 
+		 	// 4.将上述变换同步到zoom变量中
+		 	 zoom.translate([translateX,translateY]);
+		 	 zoom.scale(scale);
+		}
+	});
+	
+	$("#btn-origin-size").on("click", function() {
+		originSize();
+	});
+	
+	$("#btn-adapt-size").on("click", function() {
+		var zoom=global.zoom;
+		//1. 起始将zoom进行translate(0,0) 操作, 及将移动参考点与可视的画布左上角对齐，scale保持原有大小
+		$("#g-drag").attr("transform","scale(1)translate(0,0)");
+		zoom.scale(1);
+		
+		// 2. 计算自适应画布需要放大的scale
+		// 画布可视界面的大小(与当前屏幕大小相关);纵向-80，是由于$("#svg-exp")包含顶部实验名称项和底部试验运行项各40px
+		var svgwidth = $("#svg-exp").innerWidth();
+		var svgheight = $("#svg-exp").innerHeight()-80;
+		// 当前画布已使用面积的大小
+		var gwidth = document.getElementById("g-drag").getBoundingClientRect().width;
+		var gheight = document.getElementById("g-drag").getBoundingClientRect().height;
+		// 计算自适应画布需要放大的scale(选择宽、高之中放大比例较小的一者)，为美观，增加10px的空隙
+	    var scalewidth = (svgwidth-20)*1.0/gwidth;
+	    var scaleheight = (svgheight-20)*1.0/gheight;
+	 	scale = (scalewidth<scaleheight)? scalewidth : scaleheight;
+	 	scale = (scale > 5)? 5 : scale;
+	     
+	 	// 3. 计算自适应画布平移量
+	 	// 当前画布已使用面积的中心点
+		var center = centerGDrag(scale);
+	 	// 计算平移量
+	 	translateX = svgwidth/2 - center.x;
+	 	translateY = svgheight/2 - center.y; 
+	 	 
+	 	// 4. 根据设置的translate和scale进行zoom变换
+	 	var strmatrix = "translate("+translateX+","+translateY+")scale("+scale+")"; 
+	 	$("#g-drag").attr("transform",strmatrix);
+	 
+	 	// 5.将上述变换同步到zoom变量中
+	 	zoom.translate([translateX,translateY]);
+	 	zoom.scale(scale);
+	});
+	
+	// 全屏按钮，将左边栏与右边栏收起
+	$("#btn-full-screen").on("click", function() {
+		//$("#wrapper", parent.document).toggleClass("toggled");
+		$("#left-wrapper").toggleClass("toggled");
+		$("#middle-wrapper").toggleClass("toggled");
+		$("#right-wrapper").toggleClass("toggled");
+		$("#btn-quit-full-screen").toggleClass("toggled");
+		$("#btn-full-screen").toggleClass("toggled");
+		originSize();
+	});
+	
+	// 退出全屏按钮，将左边栏与右边栏恢复
+	$("#btn-quit-full-screen").on("click", function() {
+		//$("#wrapper", parent.document).toggleClass("toggled");
+		$("#left-wrapper").toggleClass("toggled");
+		$("#middle-wrapper").toggleClass("toggled");
+		$("#right-wrapper").toggleClass("toggled");
+		$("#btn-full-screen").toggleClass("toggled");
+		$("#btn-quit-full-screen").toggleClass("toggled");
+		originSize();
+	});
+	
+	// 禁止拖拽,允许框选
+	$("#btn-box-choose").on("click",function(){
+		$("#btn-box-choose").toggleClass("toggled");
+		$("#btn-zoom").toggleClass("toggled");
+		stopZoom();
+        initSelectBox('#svg-exp');
+	})
+	// 禁止框选,允许拖拽
+	$("#btn-zoom").on("click",function(){
+		$("#btn-box-choose").toggleClass("toggled");
+		$("#btn-zoom").toggleClass("toggled");
+		initZoom();
+	})
+}
+
+//禁止Zoom
+function stopZoom() {
+	var svg = d3.select("svg");
+	global.mousedown = svg.on("mousedown.zoom");
+	global.mousemove = svg.on("mousemove.zoom");
+	global.touchstart = svg.on("touchstart.zoom");
+	svg.on("mousedown.zoom", null);
+	svg.on("mousemove.zoom", null);
+ 	svg.on("touchstart.zoom", null);
+	/* svg.on("wheel.zoom", null); */
+	/* svg.on("mousewheel.zoom", null); */
+	/* svg.on("MozMousePixelScroll.zoom", null); */
+}
+
+// 启动框选
+function initSelectBox (selector) {
+      function clearBubble(e) {
+          if (e.stopPropagation) {
+              e.stopPropagation();
+          } else {
+              e.cancelBubble = true;
+          }
+
+          if (e.preventDefault) {
+              e.preventDefault();
+          } else {
+              e.returnValue = false;
+          }
+      }
+      var $container = $(selector);
+      //  框选事件
+      $container.on('mousedown', function(eventDown) {
+    	    global.mouseMove = false;
+          	// 删除上次框选后的active
+          	$container.find('.node').removeClass('active');
+              //  设置选择的标识
+              var isSelect = true;
+              //  创建选框节点
+              var $selectBoxDashed = $('<div class="select-box-dashed"></div>');
+              $('body').append($selectBoxDashed);
+              //  设置选框的初始位置
+              var startX = eventDown.x || eventDown.clientX;
+              var startY = eventDown.y || eventDown.clientY;
+              $selectBoxDashed.css({
+                  left: startX,
+                  top : startY
+              });
+              //  根据鼠标移动，设置选框宽高
+              var _x = null;
+              var _y = null;
+              //  清除事件冒泡、捕获
+              clearBubble(eventDown);
+              //  监听鼠标移动事件
+              $(selector).on('mousemove', function(eventMove) {
+            	  global.mouseMove = true;
+                  //  设置选框可见
+                  $selectBoxDashed.css('display', 'block');
+                  //  根据鼠标移动，设置选框的位置、宽高
+                  _x = eventMove.x || eventMove.clientX;
+                  _y = eventMove.y || eventMove.clientY;
+                  //  暂存选框的位置及宽高，用于将 node 选中
+                  var _left   = Math.min(_x, startX);
+                  var _top    = Math.min(_y, startY);
+                  var _width  = Math.abs(_x - startX);
+                  var _height = Math.abs(_y - startY);
+                  $selectBoxDashed.css({
+                      left  : _left,
+                      top   : _top,
+                      width : _width,
+                      height: _height
+                });
+                  
+                //  遍历容器中的选项，进行选中操作
+                var gnodes = d3.select("#g-drag").selectAll(".node");
+				gnodes.each(function(d){
+          		  var nodeLeft = Number(d3.select(this).attr("transform").split("translate(")[1].split(",")[0]);
+           		  var nodeTop = Number(d3.select(this).attr("transform").split("translate(")[1].split(",")[1].slice(1,-1));
+                  var nodeLT = g2expCoor([nodeLeft,nodeTop]);
+                  nodeLeft = nodeLT[0];
+                  nodeTop = nodeLT[1];
+       			  var nodeRight = nodeLeft + global.zoom.scale()*180;
+                  var nodeBottom = nodeTop + global.zoom.scale()*36;
+                  //  判断 node 是否与选框有交集，添加选中的效果（ temp-selected ，在事件 mouseup 之后将 temp-selected 替换为 selected）
+                  var condition1 = nodeRight > _left;
+                  var condition2 = nodeBottom > _top;
+                  var condition3 = nodeLeft < _left+_width;
+                  var condition4 = nodeTop < _top+_height;
+                  if (condition1 && condition2 && condition3 && condition4) {
+                  	d3.select(this).classed('active', true);
+                  } else {
+                  	d3.select(this).classed('active', false);
+                  }
+                 });
+                 //  清除事件冒泡、捕获
+                 clearBubble(eventMove);
+              });
+
+              $(document).on('mouseup', function() {
+                  $(selector).off('mousemove');
+                  var activeNode = d3.select("#g-drag").selectAll(".node.active").classed('active', true);
+                  $selectBoxDashed.remove();
+              });
+          })
+          global.mouseMove=false;
+  };
+
+// 启动Zoom
+function initZoom() {
+	$("#svg-exp").off("mousedown");
+	$("#svg-exp").off("mouseover");
+	$("#svg-exp").off("mouseup");
+	
+	var svg = d3.select("svg");
+	svg.on("mousedown.zoom", global.mousedown);
+	svg.on("mousemove.zoom", global.mousemove);
+ 	svg.on("touchstart.zoom", global.touchstart);
+
+	global.mouseMove = false;
+}
+
+//将图片恢复为原始尺寸并居中显示
+function originSize(){
+	var zoom=global.zoom;
+	//1. 起始将zoom进行translate(0,0) 操作, 及将移动参考点与可视的画布左上角对齐，scale设置为1(原始大小)
+	$("#g-drag").attr("transform","scale(1)translate(0,0)");
+	zoom.scale(1);
+	
+	// 2. 计算平移量
+	// 画布可视界面的大小(与当前屏幕大小相关);纵向-80，是由于$("#svg-exp")包含顶部实验名称项和底部试验运行项各40px
+	var halfsvgwidth = $("#svg-exp").innerWidth()/2;
+	var halfsvgheight = ($("#svg-exp").innerHeight()-80)/2;
+	// 当前画布已使用面积的中心点
+	var center = centerGDrag(1);
+	// 页面初始化，center.x和center.y都是NAN
+	if(!isNaN(center.x)){
+	 	// 计算平移量
+	 	var translateX = halfsvgwidth - center.x;
+	 	var translateY = halfsvgheight - center.y;
+	}else{
+	 	var translateX = 0;
+	 	var translateY = 0;		
+	}
+ 	 
+ 	// 3. 根据设置的translate和scale进行zoom变换
+ 	 var strmatrix = "translate("+translateX+","+translateY+")"; 
+ 	 $("#g-drag").attr("transform",strmatrix);
+ 
+ 	// 4.将上述变换同步到zoom变量中
+ 	 zoom.translate([translateX,translateY]);
+ 	 zoom.scale(1);
+}
+
+// 该方法返回当前画布已使用面积的中心点坐标,scaleRate为放缩后的scale与当前scale的比率
+function centerGDrag(scaleRate){
+	var zoom=global.zoom;
+	// 当前画布已使用面积的大小
+	var gwidth = document.getElementById("g-drag").getBoundingClientRect().width * scaleRate;
+	var gheight = document.getElementById("g-drag").getBoundingClientRect().height * scaleRate;
+	// 寻找"#g-drag"的左上角，左上角坐标 [left,top]
+	var top;
+	var left;
+	// 选取画布中的所有node节点
+	var gnodes = d3.select("#g-drag").selectAll(".node");
+	gnodes.each(function(d){
+		//用attr获取属性，所得为string，该处以后尝试用其他方法替换。
+		var inodeX = Number(d3.select(this).attr("transform").split("translate(")[1].split(",")[0]);
+ 		var inodeY = Number(d3.select(this).attr("transform").split("translate(")[1].split(",")[1].slice(1,-1));
+		if(left == null){
+		 	left = inodeX;
+		}else{
+		 	left = (left < inodeX)? left : inodeX;
+		};
+		if(top == null){
+		 	top = inodeY;
+		}else{
+		 	top = (top < inodeY)? top : inodeY;
+		 }
+	});
+	// "#g-drag"的中心点
+	var center = new Object();
+	center.x = left * zoom.scale() * scaleRate + gwidth/2;
+	center.y = top * zoom.scale() * scaleRate + gheight/2;
+	return center;
+}
+
+/* 该方法给组件加一个tooltip */
+function addNodeTooltip () {
+	 var nodetooltipid = ""; 
+		/* 给组件添加一个提示框 */
+		$(".node").on("mouseover",function(e) {
+	 		if ($('#'+global.nodetooltipid).length === 0 && this.nodeName=="g" ){
+	 			var a = $('#'+global.porttooltipid).length;
+		 		 /* 下句得到中文原名，例如拆分 */
+	             var name = this.attributes.name.nodeValue;     
+	             /* 下句得到此画布中的临时组件名，例如拆分-1 */  
+	             var nodeText = this.attributes.text.nodeValue;
+	             /* 下句获取组件在画布svg的位置。左上对齐*/
+	 			var g_coordinate = getTranslate(this.attributes.transform.nodeValue);
+	 			/* 下句通过转化得到组件在page的位置 。左上对齐*/
+	 			var exp_coordinate = g2expCoor(g_coordinate);
+            
+	             /*  为了保证每次只有一个悬浮框，且悬浮框独立，下句给每一个悬浮框加上一个单独的id */
+	             global.nodetooltipid = "nodetooltipid" + this.id;
+	             $('#container-wrapper').append("<div class='idsw-tooltip' id='"
+	            		+ global.nodetooltipid + "'>" 
+	             		+"    <p>"+ "组件名：" + nodeText + "</p>"
+	             		+"    <span>"+ "算法名：" + name + "</span>"
+	             		+"</div>");
+	             $('#'+global.nodetooltipid).css({ 
+	            	 'left': (exp_coordinate[0] + 'px'),
+	            	 /* global.zoom.scale是扩大倍数，原始的rect是36px。为了保证美观，加个高度放到组件左下 */
+                     'top': (exp_coordinate[1]+global.zoom.scale()*40+ 'px')
+	             }).show();
+         	 }
+		}).on("mouseout",function(e){
+			$('#'+global.nodetooltipid+'').remove();
+		})
+}
+
+/* 该方法给端口加一个tooltip */
+function addPortTooltip () {
+	 var porttooltipid = ""; 
+		$(".classforport").on("mouseover",function(e) {
+			e.stopPropagation();
+	 		if ($('#'+global.porttooltipid).length === 0 && this.nodeName=="g" && this.attributes.description.nodeValue){
+	             var description = this.attributes.description.nodeValue;     
+            
+	             global.porttooltipid = "porttooltipid" + this.id;
+	             $('#container-wrapper').append("<div class='idsw-tooltip' id='"
+	            		+ global.porttooltipid + "'>" 
+	             		+"    <span>"+ description + "</span>"
+	             		+"</div>");
+	             $('#'+global.porttooltipid).css({ 
+	                     'left': ((e.pageX ? e.pageX : e.clientX) -60 + 'px'),
+	                     'top': ((e.pageY ? e.pageY : e.clientY) + 10 + 'px')
+	             }).show();
+         	 }
+		}).on("mouseout",function(e){
+			$('#'+global.porttooltipid+'').remove();
+		}).on("mousemove",function(e){
+			$('#'+global.porttooltipid+'').css({
+		        'left': ((e.pageX ? e.pageX : e.clientX)  -60 + 'px'),
+		        'top': ((e.pageY ? e.pageY : e.clientY)  + 10 + 'px')
+		    })	
+	 	})
+}
+
+//////////////////  实验   ///////////////////////////
+function startExperiment(param){
+	// 发起启动实验异步请求
+	$.ajax({
+		type: "POST",
+		url: context + "/service/experiments/"+global.id+"?method=start",
+		contentType: "application/json",
+		data: JSON.stringify(param),
+		async: true
+	}).done(function(msg) {
+		if($.isPlainObject(msg) && msg.runId) {
+			global.runId=msg.runId;
+			
+			var interval=setInterval(function(){
+				var param={};
+				param["runId"]=global.runId;
+				$.ajax({
+					type: "POST",
+					contentType: "application/json",
+					url: context + "/service/experiments/" +global.id+ "?method=getExecutionStatus",
+					data: JSON.stringify(param),
+					async: false
+				}).done(function(msg) {
+					$.each(msg.nodes,function(i,node){
+						workflow.updateNode(node.id, node);
+					})
+					
+					var updateParam={};
+					if(msg.status=="SUCCEEDED"){
+						clearInterval(interval);
+						success("流程执行成功！");
+						d3.select("svg").classed("edit", true);
+						$("#stopBtn").hide();
+						$("#runBtn").show();
+						
+						// 更新实验状态
+						updateParam["status"]="SUCCESS";
+						$.ajax({
+							type: "POST",
+							contentType: "application/json",
+							url: context+"/service/experiments/"+global.id+"?method=updateStatus",
+							data: JSON.stringify(updateParam),
+							async: false
+						}).done(function(msg){
+							
+						});
+						
+						return;
+					}else if(msg.status=="KILLED"){
+						clearInterval(interval);
+						failed("流程执行出错！");
+						d3.select("svg").classed("edit", true);
+						$("#stopBtn").hide();
+						$("#runBtn").show();
+						
+						// 更新实验状态
+						updateParam["status"]="KILLED";
+						$.ajax({
+							type: "POST",
+							contentType: "application/json",
+							url: context+"/service/experiments/"+global.id+"?method=updateStatus",
+							data: JSON.stringify(updateParam),
+							async: false
+						}).done(function(msg){
+							
+						});
+						return;
+					}else{
+						
+					}
+				
+				}).fail(function(msg) {
+					clearInterval(interval);
+					d3.select("svg").classed("edit", true);
+					$("#stopBtn").hide();
+					$("#runBtn").show();
+				});
+			},3000);
+			global.interval=interval;
+		} else {
+			failed("启动出错,请稍后重试");
+			d3.select("svg").classed("edit", true);
+			$("#stopBtn").hide();
+			$("#runBtn").show();
+		}
+	});
+}
+
+//////////////////  辅助  ///////////////////////////
+
+function success(msg, position) {
+	 $.sticky(msg, {
+        style : 'success',
+        autoclose : 1500,
+        position : position || 'top'
+    });
+ }
+ 
+ function failed(msg, position) {
+	 $.sticky(msg, {
+        style : 'error',
+        autoclose : 1500,
+        position : position || 'top'
+    });
+ }
+ 
+ function warning(msg, position) {
+	  $.sticky(msg, {
+        style : 'warning',
+        autoclose : 1500,
+        position : position || 'top'
+    });
+ }
+ 
+ 
+ ////////////////////////////     功能函数        ///////////////////////////////////
+ 
+//分割字符串。例（10，20） 
+function getTranslate(transform) {
+	// IE浏览器下transorflow使用空格分割,chrome使用逗号分割
+	if(transform.indexOf(',') != -1) {
+		var arr = transform.substring(transform.indexOf("(")+1, transform.indexOf(")")).split(",");
+		return [+arr[0], +arr[1]];
+	} else {
+		var arr = transform.substring(transform.indexOf("(")+1, transform.indexOf(")")).split(" ");
+		return [+arr[0], +arr[1]];
+	}
+}
+
+// 以下两个方法共包含三个位置,请区分
+// (1)鼠标在屏幕的位置 (2)鼠标在exp svg的位置(与g-drag。translate有关) (3)组件在g-drag上的位置(与node.translate有关)
+
+// 组件在画布上的位置(3)转换为组件在exp svg坐标系下的坐标(2)
+function g2expCoor(g_coordinate) {
+		var zoom=global.zoom;
+		var svg_coordinate = getTranslate(document.getElementById("g-drag").attributes.transform.value);
+		var coordinateX = svg_coordinate[0]+g_coordinate[0]*zoom.scale();
+		var coordinateY = svg_coordinate[1]+g_coordinate[1]*zoom.scale();
+		var coordinate = [coordinateX+250,coordinateY+40];
+		return coordinate;
+}
+
+//屏幕上的坐标(1)转为exp svg的坐标(2)
+function body2gCoor(body_coordinate) {
+	var zoom=global.zoom;
+	var svg_coordinate = getTranslate(document.getElementById("g-drag").attributes.transform.value);
+	var g_coordinateX = (body_coordinate[0]-250)-svg_coordinate[0];
+	var g_coordinateY = (body_coordinate[1]-40)-svg_coordinate[1];
+	var coordinate = [g_coordinateX,g_coordinateY];
+	return coordinate;
+}
+ 
+</script>
+</html>
